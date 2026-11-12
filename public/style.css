@@ -477,3 +477,10 @@ body.is-term .sbar { display: flex; }
 .qb-go { background: var(--accent); color: #fff; }
 .qb-go:not(:disabled):hover { background: var(--accent-hi); box-shadow: 0 8px 30px rgba(91, 107, 255, .3); }
 .qb-err { margin: 0; font-size: 13px; }
+
+/* ------------------------------------------------------------ fee notes, legal links */
+.fee-note { display: block; margin-top: 10px; font-size: 11.5px; line-height: 1.5; color: var(--faint); }
+.fee-note a, .foot-copy a { color: rgba(255, 255, 255, .7); text-decoration: underline; text-underline-offset: 2px; }
+.fee-note a:hover, .foot-copy a:hover { color: #fff; }
+.sb-link { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+.sb-link:hover { color: #fff; }

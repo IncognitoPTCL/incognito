@@ -5,6 +5,7 @@ import { startXCards } from './xcard.js';
 import { createDiscover } from './discover.js';
 import { initFilters } from './filters.js';
 import { hostOnArweave } from './host.js';
+import { safeUrl } from './safe.js';
 
 const pixels = startPixels(document.getElementById('px'));
 import {
@@ -424,6 +425,7 @@ function renderDep() {
     <div class="sep"></div>
     <button type="button" class="btn btn-primary btn-block" id="go" data-act="launch">Launch on pump.fun</button>
     <small id="go-why"></small>
+    <small class="fee-note">Creating the coin costs about 0.006 to 0.008 SOL, plus your first buy and its fees. Incognito takes none. The image and details go to Arweave, which is public and permanent. <a href="/legal.html#risk" target="_blank" rel="noopener">Risks</a></small>
     <div id="dep-log">${logHtml()}</div>
     <div class="sep"></div>
     <div class="btn-row">
@@ -787,9 +789,9 @@ function renderCoin() {
     ${nonSol ? `<span class="chip" style="color:var(--warn)">Priced in ${c.quote ? `$${esc(c.quote)}` : 'another token'}, not SOL: not tradable here</span>` : ''}
     <div class="cb-links">
       <a href="https://pump.fun/coin/${esc(tst.mint)}" target="_blank" rel="noopener">pump.fun</a>
-      ${c.url ? `<a href="${esc(c.url)}" target="_blank" rel="noopener">DexScreener</a>` : ''}
+      ${c.url ? `<a href="${esc(safeUrl(c.url))}" target="_blank" rel="noopener noreferrer">DexScreener</a>` : ''}
       <a href="https://solscan.io/token/${esc(tst.mint)}" target="_blank" rel="noopener">Solscan</a>
-      ${(c.socials || p.socials || []).slice(0, 3).map((s) => { const x = s.type === 'twitter' || s.type === 'x'; return `<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer"${x ? ` data-xprev="${esc(s.url)}"` : ''}>${x ? 'X' : s.type === 'telegram' ? 'Telegram' : 'Website'}</a>`; }).join('')}
+      ${(c.socials || p.socials || []).slice(0, 3).map((s) => { const x = s.type === 'twitter' || s.type === 'x'; return `<a href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener noreferrer"${x ? ` data-xprev="${esc(safeUrl(s.url))}"` : ''}>${x ? 'X' : s.type === 'telegram' ? 'Telegram' : 'Website'}</a>`; }).join('')}
     </div>`;
   const target = c.pair || null;
   if (target && chart.dataset.for !== target) {
@@ -881,6 +883,7 @@ function renderTradeWallet() {
       </div>
     </div>
     <button type="button" class="btn btn-primary btn-block" data-tact="buy" ${tst.mint && !tst.busy ? '' : 'disabled'}>Buy</button>
+    <small class="fee-note">Fees: pump.fun\'s trading fee, 0.5% to PumpPortal (which builds the trade) and Solana network fees. Incognito takes none. <a href="/legal.html#risk" target="_blank" rel="noopener">Risks</a></small>
     <div class="field" style="margin:16px 0 8px"><span>Sell</span></div>
     <div class="btn-row">
       <button type="button" class="btn btn-ghost" data-tact="sell" data-pct="25%" ${tst.mint && tst.tokens && !tst.busy ? '' : 'disabled'}>25%</button>
@@ -1053,7 +1056,8 @@ function renderQb() {
     ${enough ? '' : `<p class="qb-hint">Send SOL to the address above from any wallet or exchange (it shows up here on its own), or:</p>
       <div class="fund"><input id="qb-fund" type="number" min="0" step="0.01" value="${(Math.ceil(top * 1000) / 1000).toFixed(3)}" inputmode="decimal" aria-label="SOL to send"><button type="button" class="btn btn-ghost" data-qb="fund">Send from my wallet</button></div>`}
     <button type="button" class="btn btn-primary btn-block qb-go" data-qb="buy" ${enough && !qbs.busy ? '' : 'disabled'}>${qbs.busy ? 'Buying...' : `Buy ${qbs.amount} SOL of ${label}`}</button>
-    ${qbs.err ? `<p class="bad qb-err">${esc(qbs.err)}</p>` : ''}`;
+    ${qbs.err ? `<p class="bad qb-err">${esc(qbs.err)}</p>` : ''}
+    <small class="fee-note">Fees: pump.fun\'s trading fee, 0.5% to PumpPortal (which builds the trade) and Solana network fees. Incognito takes none. <a href="/legal.html#risk" target="_blank" rel="noopener">Risks</a></small>`;
 }
 
 async function pollQb() {

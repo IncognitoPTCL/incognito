@@ -1,6 +1,8 @@
 // Hover preview for X links: hold the pointer on any element with data-xprev="<x.com link>" and a
 // small card shows the profile (avatar, name, followers, bio) or the tweet (author, text, image,
 // counts). Data comes from /api/x (FxTwitter, cached). One card element serves the whole page.
+import { safeUrl } from './safe.js';
+
 const n = (v) => (v == null ? '-' : v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `${(v / 1e3).toFixed(1)}K` : String(v));
 const when = (t) => {
   if (!t) return '';
@@ -24,15 +26,15 @@ export function startXCards({ api, esc }) {
     </div>`;
 
   function html(p, href) {
-    if (!p) return `<p class="xc-none">No preview for this link.</p><a class="xc-open" href="${esc(href)}" target="_blank" rel="noopener noreferrer">Open on X</a>`;
-    if (p.kind === 'community') return `<p class="xc-kind">X community</p><p class="xc-none">Communities have no public preview.</p><a class="xc-open" href="${esc(href)}" target="_blank" rel="noopener noreferrer">Open on X</a>`;
+    if (!p) return `<p class="xc-none">No preview for this link.</p><a class="xc-open" href="${esc(safeUrl(href))}" target="_blank" rel="noopener noreferrer">Open on X</a>`;
+    if (p.kind === 'community') return `<p class="xc-kind">X community</p><p class="xc-none">Communities have no public preview.</p><a class="xc-open" href="${esc(safeUrl(href))}" target="_blank" rel="noopener noreferrer">Open on X</a>`;
     if (p.kind === 'tweet') {
       return `${author(p.author)}
         <p class="xc-text">${esc(p.text || '')}</p>
         ${p.media ? `<img class="xc-media" src="${esc(p.media)}" alt="" referrerpolicy="no-referrer">` : ''}
         <div class="xc-stats"><span>${n(p.replies)} replies</span><span>${n(p.retweets)} reposts</span><span>${n(p.likes)} likes</span>${p.views != null ? `<span>${n(p.views)} views</span>` : ''}<span class="xc-when">${when(p.at)}</span></div>`;
     }
-    return `${p.banner ? `<div class="xc-banner" style="background-image:url('${esc(p.banner)}')"></div>` : ''}
+    return `${p.banner && safeUrl(p.banner) !== '#' ? `<div class="xc-banner" style="background-image:url('${esc(encodeURI(decodeURI(safeUrl(p.banner))))}')"></div>` : ''}
       ${author(p)}
       ${p.bio ? `<p class="xc-text">${esc(p.bio)}</p>` : ''}
       <div class="xc-stats"><span><b>${n(p.followers)}</b> followers</span><span><b>${n(p.following)}</b> following</span></div>`;

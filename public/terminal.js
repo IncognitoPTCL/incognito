@@ -8,6 +8,7 @@
 //   - DexScreener's latest profiles and boosts (/api/pulse/seed) to fill the columns on first load
 import { fromB64 } from './sol.js';
 import { passes, activeCount, openFilters } from './filters.js';
+import { safeUrl } from './safe.js';
 
 const NEW_MAX = 40;
 const FIN_MAX = 30;
@@ -135,6 +136,28 @@ export function createPulse(ctx) {
   // Fill the columns from GeckoTerminal (/api/pulse/lists): the newest pump.fun launches, the
   // busiest bonding curves (their progress is then read on chain) and the busiest coins that
   // graduated in the last day. The websocket keeps adding live launches and migrations on top.
+  // the last lists this browser saw, shown at once on the next visit (then refreshed)
+  const SNAP = 'incognito:pulse:v1';
+  function saveSnapshot() {
+    try {
+      const pick = (ids) => ids.slice(0, 40).map((m) => coins.get(m)).filter(Boolean)
+        .map(({ mint, name, symbol, image, createdAt, migratedAt, curve, progress, mcapSol, marketCap, volume, change, dex, socials, uri }) =>
+          ({ mint, name, symbol, image, createdAt, migratedAt, curve, progress, mcapSol, marketCap, volume, change, dex, socials, uri }));
+      localStorage.setItem(SNAP, JSON.stringify({ at: Date.now(), new: pick(lists.new), mig: pick(lists.mig), fin: pick(finalStretch()) }));
+    } catch { /* storage full or blocked */ }
+  }
+  function restoreSnapshot() {
+    try {
+      const s = JSON.parse(localStorage.getItem(SNAP) || 'null');
+      if (!s || Date.now() - s.at > 30 * 60_000) return;
+      const put = (list) => list.map((c) => { Object.assign(coin(c.mint), c, { socials: c.socials || [] }); return c.mint; });
+      lists.new = [...new Set([...lists.new, ...put(s.new || [])])].slice(0, NEW_MAX);
+      lists.mig = [...new Set([...lists.mig, ...put(s.mig || [])])].slice(0, MIG_MAX);
+      put(s.fin || []);
+      dirty = true;
+    } catch { /* ignore a bad snapshot */ }
+  }
+
   async function loadLists() {
     const r = await api('/api/pulse/lists');
     // an empty answer means the list source is rate limited for a moment: try again soon
@@ -181,6 +204,7 @@ export function createPulse(ctx) {
     }
     lists.mig = [...new Set(lists.mig)].sort(newest).slice(0, MIG_MAX);
     seeded = true;
+    if (lists.new.length) saveSnapshot();
     dirty = true;
     await curves();
   }
@@ -284,7 +308,7 @@ export function createPulse(ctx) {
     if (soc.dataset.k !== socKey) {
       soc.dataset.k = socKey;
       soc.innerHTML = c.socials.filter((s) => ICON[s.type] || s.type === 'x').slice(0, 3)
-        .map((s) => { const x = s.type === 'twitter' || s.type === 'x'; return `<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer"${x ? ` data-xprev="${esc(s.url)}"` : ` title="${esc(s.type)}"`}>${ICON[x ? 'twitter' : s.type]}</a>`; }).join('');
+        .map((s) => { const x = s.type === 'twitter' || s.type === 'x'; return `<a href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener noreferrer"${x ? ` data-xprev="${esc(safeUrl(s.url))}"` : ` title="${esc(s.type)}"`}>${ICON[x ? 'twitter' : s.type]}</a>`; }).join('');
     }
     const prog = el.querySelector('.pc-prog');
     const showProg = c.progress != null && !c.migratedAt && c.dex !== 'pumpswap';
@@ -320,9 +344,9 @@ export function createPulse(ctx) {
   function render() {
     if (!visible) return;
     dirty = false;
-    fill('p-new', lists.new, 'Waiting for the next launch on pump.fun...');
-    fill('p-fin', finalStretch(), seeded ? 'No coin we are tracking is past 50% of its bonding curve yet.' : 'Loading...');
-    fill('p-mig', lists.mig, seeded ? 'Waiting for the next coin to graduate...' : 'Loading...');
+    fill('p-new', lists.new, 'Loading the latest launches...');
+    fill('p-fin', finalStretch(), seeded ? 'No coin is past 50% of its bonding curve right now.' : 'Loading coins near graduation...');
+    fill('p-mig', lists.mig, 'Loading graduated coins...');
   }
 
   /* ---------------------------------------------------------------- events */
@@ -347,12 +371,13 @@ export function createPulse(ctx) {
     show() {
       if (visible) return;
       visible = true;
+      if (!lists.new.length) restoreSnapshot();
       connect();
       safe(loadLists)();
       render();
       timers = [
         setInterval(() => { if (dirty || visible) render(); }, 1000),
-        setInterval(safe(curves), 5000),
+        setInterval(safe(curves), 8000), // one RPC call per visitor every 8 s
         setInterval(safe(() => market(visibleMints())), 12_000),
         setInterval(safe(metas), 1500),
         setInterval(safe(loadLists), 30_000),

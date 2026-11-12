@@ -3,6 +3,7 @@
 // price line, and a one-click buy. Filters come from filters.js.
 import { passes, activeCount, openFilters, FILTER_ICON } from './filters.js';
 import { fmtUsd, age } from './terminal.js';
+import { safeUrl } from './safe.js';
 
 const TF = { m5: '5m', h1: '1h', h6: '6h', h24: '24h' };
 const BOLT = '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>';
@@ -61,7 +62,7 @@ export function createDiscover(ctx) {
     const soc = (c.socials || []).slice(0, 3).map((s) => {
       const x = s.type === 'twitter' || s.type === 'x';
       const icon = SOC[x ? 'twitter' : s.type] || SOC.website;
-      return `<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer"${x ? ` data-xprev="${esc(s.url)}"` : ''}>${icon}</a>`;
+      return `<a href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener noreferrer"${x ? ` data-xprev="${esc(safeUrl(s.url))}"` : ''}>${icon}</a>`;
     }).join('');
     return `<div class="dr" data-mint="${c.mint}">
       <div class="dc dc-pair">

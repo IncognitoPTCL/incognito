@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terms, privacy and risks · Incognito</title>
+<meta name="description" content="How Incognito works, what it does with your data, and the risks of trading and launching coins.">
+<meta name="theme-color" content="#171717">
+<link rel="icon" href="/favicon.svg?v=5" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root { --bg: #171717; --text: #ededed; --muted: rgba(255,255,255,.6); --line: rgba(255,255,255,.1); color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 400 15px/1.65 Inter, ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  main { max-width: 720px; margin: 0 auto; padding: 40px 20px 80px; }
+  a { color: #fff; }
+  .back { display: inline-block; margin-bottom: 28px; color: var(--muted); text-decoration: none; font-size: 14px; }
+  .back:hover { color: #fff; }
+  h1 { font-size: 34px; font-weight: 500; letter-spacing: -.02em; margin: 0 0 6px; }
+  .updated { color: var(--muted); font-size: 13px; margin: 0 0 28px; }
+  nav.toc { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 30px; }
+  nav.toc a { font-size: 13px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; text-decoration: none; color: var(--muted); }
+  nav.toc a:hover { color: #fff; border-color: rgba(255,255,255,.3); }
+  h2 { font-size: 21px; font-weight: 600; margin: 40px 0 10px; padding-top: 18px; border-top: 1px solid var(--line); scroll-margin-top: 20px; }
+  h3 { font-size: 15px; font-weight: 600; margin: 22px 0 6px; }
+  p, li { color: rgba(255,255,255,.82); }
+  ul { padding-left: 20px; }
+  li { margin: 4px 0; }
+  .callout { border: 1px solid rgba(251,191,36,.3); background: rgba(251,191,36,.07); border-radius: 12px; padding: 14px 16px; margin: 18px 0; }
+  .callout p { margin: 0; color: #fde68a; }
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="/">&larr; Back to Incognito</a>
+  <h1>Terms, privacy and risks</h1>
+  <p class="updated">Last updated 12 November 2026</p>
+  <nav class="toc" aria-label="Sections"><a href="#terms">Terms</a><a href="#fees">Fees</a><a href="#privacy">Privacy</a><a href="#risk">Risks</a></nav>
+
+  <div class="callout"><p>Incognito is software that runs in your browser. It never holds your money or your keys. Memecoins are extremely risky: only use money you can afford to lose completely.</p></div>
+
+  <h2 id="terms">Terms</h2>
+  <h3>What Incognito is</h3>
+  <p>Incognito is an open-source interface for trading and launching coins on pump.fun and PumpSwap from fresh Solana wallets made in your browser. By using it you agree to these terms. If you do not agree, do not use it.</p>
+  <h3>No custody, no accounts</h3>
+  <ul>
+    <li>Every wallet's private key is created in your browser and stored only in your browser's storage. It is never sent to us and we cannot see, recover or reset it.</li>
+    <li>You are responsible for backing up each key before you put funds in that wallet. If you clear your browser data without a backup, the funds in that wallet are gone for good.</li>
+    <li>Every transaction is checked and signed in your browser. Our server builds and relays transactions on request; it holds no key and cannot move funds.</li>
+  </ul>
+  <h3>Third parties</h3>
+  <p>Incognito is not affiliated with, endorsed by or operated by pump.fun, PumpPortal, DexScreener, GeckoTerminal, ArDrive, X or any Solana RPC provider. It relies on them for transactions, market data, previews and file hosting, and they can change, fail or refuse service at any time.</p>
+  <h3>Your responsibilities</h3>
+  <ul>
+    <li>You must be old enough, and legally allowed where you live, to use crypto services like this one.</li>
+    <li>Some services this site relies on restrict access from certain countries, including the United Kingdom. Do not use Incognito where doing so would break the law that applies to you.</li>
+    <li>Do not use Incognito to deceive people, manipulate markets, launch coins that impersonate real people or brands, or launder money.</li>
+    <li>You are responsible for any taxes on your activity.</li>
+  </ul>
+  <h3>No warranty</h3>
+  <p>Incognito is provided "as is", without warranty of any kind, under the MIT license. To the fullest extent the law allows, the people who build and run Incognito are not liable for any loss, including lost funds, failed or delayed transactions, wrong prices or data, bugs, or outages of any service it relies on.</p>
+  <h3>Changes</h3>
+  <p>These terms can change as the product does. The date at the top shows the latest version.</p>
+
+  <h2 id="fees">Fees</h2>
+  <ul>
+    <li><b>Incognito charges no fee.</b></li>
+    <li>pump.fun's own trading fee applies to every buy and sell (about 1.25% on the bonding curve; PumpSwap has its own).</li>
+    <li>PumpPortal, which builds each transaction, takes 0.5% of each trade.</li>
+    <li>Solana network fees and a priority fee (0.0005 SOL) apply to each transaction. A first buy of a coin also pays about 0.002 SOL of rent for the coin's token account.</li>
+    <li>Launching a coin costs about 0.006 to 0.008 SOL before any first buy.</li>
+  </ul>
+
+  <h2 id="privacy">Privacy</h2>
+  <h3>What stays in your browser</h3>
+  <p>Your fresh wallets' keys, your filter and quick-buy settings, and your list of wallets are kept in this browser's local storage. There are no accounts, cookies for tracking, or analytics.</p>
+  <h3>What our server sees</h3>
+  <ul>
+    <li>Your IP address, as any website does. Our host (Vercel) keeps request logs.</li>
+    <li>Public wallet addresses, coin addresses and transactions that you ask it to build or relay. These are public on the blockchain anyway.</li>
+    <li>It never receives a private key.</li>
+  </ul>
+  <h3>Services your browser or our server contacts</h3>
+  <p>PumpPortal (transactions and the live new-coin feed), DexScreener and GeckoTerminal (market data and charts), FxTwitter (X previews), ArDrive Turbo and Arweave (coin images and metadata when you launch), Pinata (if configured), and Solana RPC providers. Each has its own privacy policy.</p>
+  <h3>What is public</h3>
+  <ul>
+    <li>Everything on the blockchain is public: a fresh wallet's trades, the transfer that funds it, and withdrawals back to another wallet. The transfer that funds a fresh wallet shows which wallet it came from.</li>
+    <li>A launched coin's image and details are stored on Arweave, which is public and permanent. They cannot be deleted.</li>
+  </ul>
+
+  <h2 id="risk">Risks</h2>
+  <ul>
+    <li><b>You can lose everything you put in.</b> Most memecoins go to zero. Prices can move faster than a transaction lands.</li>
+    <li>Coins can be scams: creators can sell into buyers, and bonding curves and pools can be drained of value in seconds.</li>
+    <li>Slippage, failed transactions and network congestion can cost you fees with nothing bought.</li>
+    <li>Market data on this site comes from third parties and can be late or wrong.</li>
+    <li>Your keys live in your browser. Malware, a shared computer or clearing site data can expose or erase them. Back them up somewhere safe.</li>
+    <li>Using a fresh wallet hides your main wallet from a coin's chart, not from the blockchain. Anyone who follows the funding transfer can link the two.</li>
+    <li>Nothing on Incognito is financial, legal or tax advice.</li>
+  </ul>
+  <p>Questions: <a href="https://x.com/IncognitoPTCL" target="_blank" rel="noopener">@IncognitoPTCL</a> on X. Source code: <a href="https://github.com/deployer775/incognito" target="_blank" rel="noopener">github.com/deployer775/incognito</a>.</p>
+</main>
+</body>
+</html>
