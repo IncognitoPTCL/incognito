@@ -17,12 +17,13 @@
   "devDependencies": {
     "@solana/web3.js": "^1.99.0",
     "@vercel/blob": "^2.9.0",
-    "esbuild": "^0.28.2"
+    "esbuild": "^0.28.2",
+    "gsap": "^3.13.0"
   },
   "license": "MIT",
   "homepage": "https://incognito-pad.vercel.app",
   "repository": {
     "type": "git",
-    "url": "https://github.com/deployer775/incognito.git"
+    "url": "https://github.com/IncognitoPTCL/incognito.git"
   }
 }
