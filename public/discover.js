@@ -84,7 +84,7 @@ export function createDiscover(ctx) {
   function render() {
     if (!visible) return;
     const body = document.getElementById('d-body');
-    const list = [...coins.values()].filter((c) => passes('discover', c, metrics(c)));
+    const list = [...coins.values()].filter((c) => c.solPair !== false && passes('discover', c, metrics(c)));
     const key = (c) => {
       const m = metrics(c);
       return sort.key === 'age' ? -(c.createdAt || 0) : m[sort.key] ?? -Infinity;

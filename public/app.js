@@ -766,7 +766,8 @@ function renderCoin() {
   const symbol = c.symbol || p.symbol || '';
   const image = c.image || p.image;
   const mc = c.marketCap ?? (tst.curve?.mcapSol != null && pulse.solUsd() ? tst.curve.mcapSol * pulse.solUsd() : null);
-  const prog = tst.curve && !tst.curve.complete && c.dex !== 'pumpswap' ? tst.curve.progress : null;
+  const prog = tst.curve && !tst.curve.complete && c.dex !== 'pumpswap' && tst.curve.solQuote !== false ? tst.curve.progress : null;
+  const nonSol = c.solPair === false || tst.curve?.solQuote === false;
   bar.innerHTML = `
     <div class="cb-id">
       ${image ? `<img src="${esc(image)}" alt="" referrerpolicy="no-referrer">` : `<span class="cb-ph">${esc((symbol || name).slice(0, 2).toUpperCase())}</span>`}
@@ -783,6 +784,7 @@ function renderCoin() {
       <div><dt>24h</dt><dd>${pct(c.change24h) || '-'}</dd></div>
       ${prog != null ? `<div class="cb-prog"><dt>Bonding curve</dt><dd><i><b style="width:${(prog * 100).toFixed(1)}%"></b></i>${(prog * 100).toFixed(0)}%</dd></div>` : ''}
     </dl>
+    ${nonSol ? `<span class="chip" style="color:var(--warn)">Priced in ${c.quote ? `$${esc(c.quote)}` : 'another token'}, not SOL: not tradable here</span>` : ''}
     <div class="cb-links">
       <a href="https://pump.fun/coin/${esc(tst.mint)}" target="_blank" rel="noopener">pump.fun</a>
       ${c.url ? `<a href="${esc(c.url)}" target="_blank" rel="noopener">DexScreener</a>` : ''}
@@ -917,6 +919,9 @@ function stopTradePoll() {
 }
 
 async function trade(w, action, amount, mint = tst.mint) {
+  if (mint === tst.mint && (tst.coin?.solPair === false || tst.curve?.solQuote === false)) {
+    throw new Error(`This coin is priced in ${tst.coin?.quote ? `$${tst.coin.quote}` : 'another token'}, not SOL. Incognito trades SOL pairs only. Nothing was signed.`);
+  }
   const s = await signerOf(w);
   if (action === 'buy') {
     const bal = await balanceOf(w.address);

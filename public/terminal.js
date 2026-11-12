@@ -37,8 +37,13 @@ export function readCurve(b64) {
   const vSol = Number(dv.getBigUint64(16, true));
   const realTok = Number(dv.getBigUint64(24, true));
   const complete = b[48] === 1;
+  // quote_mint at 83: all zeros (or wrapped SOL) means the coin is priced in SOL
+  const quote = b.length >= 115 ? b.slice(83, 115) : new Uint8Array(32);
+  const WSOL_BYTES = [6, 155, 136, 87, 254, 171, 129, 132, 251, 104, 127, 99, 70, 24, 192, 53, 218, 196, 57, 220, 26, 235, 59, 85, 152, 160, 240, 0, 0, 0, 0, 1];
+  const solQuote = quote.every((x) => x === 0) || quote.every((x, i) => x === WSOL_BYTES[i]);
   return {
     complete,
+    solQuote,
     mcapSol: vTok ? (vSol * 1e6) / vTok : null,
     progress: complete ? 1 : Math.min(1, Math.max(0, (SELLABLE - realTok) / SELLABLE)),
   };
@@ -55,6 +60,7 @@ export function createPulse(ctx) {
   let solUsd = null;
   let seeded = false;
   let lastSeed = 0;
+  let retryLists = 0;
   let timers = [];
   let dirty = false;
   const metaQueue = new Set();
@@ -131,6 +137,8 @@ export function createPulse(ctx) {
   // graduated in the last day. The websocket keeps adding live launches and migrations on top.
   async function loadLists() {
     const r = await api('/api/pulse/lists');
+    // an empty answer means the list source is rate limited for a moment: try again soon
+    if (!(r.new || []).length && visible && !retryLists) retryLists = setTimeout(() => { retryLists = 0; loadLists().catch(() => {}); }, 6000);
     const take = (g) => {
       const c = coin(g.mint);
       c.name = c.name || g.name;
@@ -187,6 +195,7 @@ export function createPulse(ctx) {
         c.symbol = c.symbol || d.symbol;
         c.image = c.image || d.image;
         Object.assign(c, { marketCap: d.marketCap, volume: d.volume, liquidity: d.liquidity, tx: d.tx, paid: d.paid, change: d.change1h ?? d.change24h, dex: d.dex, pair: d.pair, url: d.url });
+        if (d.solPair === false) c.nonSol = true;
         if (!c.createdAt && d.createdAt) c.createdAt = d.createdAt;
         if (d.dex === 'pumpfun' && d.pair && !c.curve) c.curve = d.pair; // DexScreener's pump.fun pair IS the bonding curve
         if (d.socials?.length && !c.socials.length) c.socials = d.socials;
@@ -207,6 +216,7 @@ export function createPulse(ctx) {
       c.mcapSol = k.mcapSol;
       c.progress = k.progress;
       c.complete = k.complete;
+      if (!k.solQuote) c.nonSol = true;
     });
     dirty = true;
   }
@@ -292,6 +302,7 @@ export function createPulse(ctx) {
     const key = id.replace('p-', '');
     const mints = all.filter((m) => {
       const c = coins.get(m);
+      if (c.nonSol) return false; // SOL pairs only
       const tx = c.tx?.h24 ? (c.tx.h24.buys || 0) + (c.tx.h24.sells || 0) : null;
       return passes(key, c, { mc: mcapUsd(c), liq: c.liquidity ?? null, vol: c.volume ?? null, tx, ageMin: c.createdAt ? (Date.now() - c.createdAt) / 60000 : null, progress: c.progress });
     });
