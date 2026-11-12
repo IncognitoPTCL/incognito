@@ -2,7 +2,7 @@
 
 Private trading and launching on Solana. Buy and sell any pump.fun coin, or launch your own, from fresh wallets made in your browser, so your main wallet never touches the chart. Non-custodial and open source.
 
-Live: [incognito-pad.vercel.app](https://incognito-pad.vercel.app) · X: [@IncognitoPTCL](https://x.com/IncognitoPTCL)
+Live: [useincognito.fun](https://www.useincognito.fun) · X: [@IncognitoPTCL](https://x.com/IncognitoPTCL)
 
 ## The idea
 
@@ -97,7 +97,7 @@ Deploy with `bash deploy.sh` (Vercel).
 
 - Back up a fresh wallet's key before you fund it. It lives only in your browser; clearing site data without a backup loses whatever is in it.
 - Every transaction PumpPortal builds is checked (who signs it, which program it calls) before your browser signs it.
-- Memecoins can go to zero. Nothing here is advice. See the site's [terms, privacy and risks](https://incognito-pad.vercel.app/legal.html).
+- Memecoins can go to zero. Nothing here is advice. See the site's [terms, privacy and risks](https://www.useincognito.fun/legal.html).
 
 ## License
 
