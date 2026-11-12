@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Incognito</title>
+<meta name="description" content="Private trading and launching on Solana. Your wallet never touches the chart: every launch and trade runs from a fresh wallet made in your browser.">
+<meta name="theme-color" content="#171717">
+<meta name="referrer" content="no-referrer">
+<meta name="twitter:site" content="@IncognitoPTCL">
+<link rel="icon" href="/favicon.svg?v=5" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png?v=5" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=5">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/style.css?v=1">
+</head>
+<body class="on-home">
+  <a class="skip" href="#app">Skip to content</a>
+  <canvas class="px" id="px" aria-hidden="true"></canvas>
+
+  <header class="top">
+    <div class="top-left">
+      <a class="brand" href="#/" aria-label="Incognito home"><span class="brand-mark" data-logo></span></a>
+      <nav class="nav" aria-label="Main">
+        <a href="#/discover" data-r="discover">Discover</a>
+        <a href="#/pulse" data-r="pulse">Pulse</a>
+        <a href="#/launch" data-r="launch">Launch</a>
+        <a href="#/wallets" data-r="wallets">Wallets</a>
+      </nav>
+    </div>
+    <div class="top-right">
+      <label class="qb top-qb"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><span>Quick buy</span><input id="p-qb" type="number" min="0" step="0.01" value="0.1" inputmode="decimal" aria-label="Quick buy amount in SOL"><em>SOL</em></label>
+      <form class="top-search" id="q-form" role="search">
+        <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="9" cy="9" r="5.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M13.2 13.2 17 17" stroke="currentColor" stroke-width="1.6"/></svg>
+        <input id="q" placeholder="Paste a contract address" autocomplete="off" spellcheck="false" aria-label="Open a coin by contract address">
+      </form>
+      <a class="x-link" href="https://x.com/IncognitoPTCL" target="_blank" rel="noopener" aria-label="Incognito on X" data-xprev="https://x.com/IncognitoPTCL"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+      <button type="button" class="connect" id="connect">Connect</button>
+    </div>
+  </header>
+
+  <div id="app">
+    <!-- home: the Sweep / Dialed hero, on plain dark -->
+    <main class="home" id="v-home">
+      <div class="home-mark" data-logo data-logo-lg></div>
+      <h1 class="home-title"><span>Private trading</span><span>&amp; launching on Solana.</span></h1>
+      <p class="home-lede">Your wallet never touches the chart. Every launch and every trade runs from a fresh wallet made in your browser.</p>
+      <div class="home-ctas">
+        <a class="btn btn-primary" href="#/discover">Open terminal</a>
+        <a class="btn btn-ghost" href="#/launch">Launch a coin</a>
+      </div>
+    </main>
+
+    <!-- launch -->
+    <main class="view" id="v-launch" hidden>
+      <div class="view-head">
+        <h2>Launch a coin</h2>
+        <p>Fill in the coin, make a fresh deployer, fund it, launch.</p>
+      </div>
+      <div class="grid">
+        <section class="card" aria-labelledby="coin-h">
+          <h3 id="coin-h"><span class="step">1</span>Coin</h3>
+          <div class="coin-top">
+            <label class="drop" id="drop">
+              <input type="file" id="image" accept="image/png,image/jpeg,image/gif,image/webp">
+              <img id="image-preview" alt="" hidden>
+              <span class="drop-hint" id="drop-hint"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>Image</span>
+            </label>
+            <div class="coin-names">
+              <label class="field"><span>Name</span><input id="name" maxlength="32" placeholder="Coin name" autocomplete="off"></label>
+              <label class="field"><span>Ticker</span><input id="symbol" maxlength="10" placeholder="TICKER" autocomplete="off" spellcheck="false"></label>
+            </div>
+          </div>
+          <label class="field"><span>Description</span><textarea id="description" rows="3" maxlength="1000" placeholder="What is it?"></textarea></label>
+          <div class="row3">
+            <label class="field"><span>X</span><input id="twitter" placeholder="x.com/..." autocomplete="off"></label>
+            <label class="field"><span>Telegram</span><input id="telegram" placeholder="t.me/..." autocomplete="off"></label>
+            <label class="field"><span>Website</span><input id="website" placeholder="https://..." autocomplete="off"></label>
+          </div>
+          <div class="field">
+            <span>First buy</span>
+            <div class="buy">
+              <input id="buy" type="number" min="0" step="0.01" value="0" inputmode="decimal" aria-label="First buy in SOL"><em>SOL</em>
+              <div class="chips" id="chips"><button type="button" data-v="0">None</button><button type="button" data-v="0.5">0.5</button><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button></div>
+            </div>
+            <small>Bought by the fresh wallet in the same transaction as the launch.</small>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="dep-h">
+          <h3 id="dep-h"><span class="step">2</span>Fresh deployer</h3>
+          <div id="dep"></div>
+        </section>
+      </div>
+    </main>
+
+    <!-- terminal: discover table -->
+    <main class="term" id="v-discover" hidden>
+      <div class="pulse-bar">
+        <h2>Discover</h2>
+        <span class="disc-src">Trending pump.fun coins</span>
+        <div class="pulse-tools">
+          <div class="tf" id="d-tf" role="group" aria-label="Timeframe"><button type="button" data-tf="m5">5m</button><button type="button" data-tf="h1">1h</button><button type="button" data-tf="h6">6h</button><button type="button" data-tf="h24">24h</button></div>
+          <button type="button" class="tool-btn" id="d-filter"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span>Filters</span><b id="d-filter-n"></b></button>
+        </div>
+      </div>
+      <div class="dtable">
+        <div class="dr dt-head">
+          <div class="dc dc-pair">Pair info</div>
+          <button type="button" class="dc dc-num" data-sort="mc">Market cap</button>
+          <button type="button" class="dc dc-num" data-sort="liq">Liquidity</button>
+          <button type="button" class="dc dc-num" data-sort="vol">Volume</button>
+          <button type="button" class="dc dc-num" data-sort="tx">TXNS</button>
+          <div class="dc dc-info">Token info</div>
+          <div class="dc dc-act">Action</div>
+        </div>
+        <div class="dt-body" id="d-body"></div>
+      </div>
+    </main>
+
+    <!-- terminal: live pump.fun columns -->
+    <main class="term" id="v-terminal" hidden>
+      <div class="pulse-bar">
+        <h2>Pulse</h2>
+        <span class="live-dot" id="p-live">Connecting</span>
+
+      </div>
+      <div class="pulse-cols">
+        <section class="pcol" aria-labelledby="pc-new"><header><h3 id="pc-new">New pairs</h3><span class="pcol-n" id="pc-new-n"></span><button type="button" class="tool-btn" data-filter="new" aria-label="Filter New pairs"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><b data-filter-n="new"></b></button></header><div class="pcol-list" id="p-new"></div></section>
+        <section class="pcol" aria-labelledby="pc-fin"><header><h3 id="pc-fin">Final stretch</h3><span class="pcol-n" id="pc-fin-n"></span><button type="button" class="tool-btn" data-filter="fin" aria-label="Filter Final stretch"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><b data-filter-n="fin"></b></button></header><div class="pcol-list" id="p-fin"></div></section>
+        <section class="pcol" aria-labelledby="pc-mig"><header><h3 id="pc-mig">Migrated</h3><span class="pcol-n" id="pc-mig-n"></span><button type="button" class="tool-btn" data-filter="mig" aria-label="Filter Migrated"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><b data-filter-n="mig"></b></button></header><div class="pcol-list" id="p-mig"></div></section>
+      </div>
+    </main>
+
+    <!-- terminal: one coin -->
+    <main class="term" id="v-trade" hidden>
+      <div class="coin-bar" id="t-coin"></div>
+      <div class="coin-grid">
+        <section class="chart-box" id="t-chart" aria-label="Chart and trades"></section>
+        <aside class="trade-box" aria-labelledby="tw-h">
+          <h3 id="tw-h">Trade from a fresh wallet</h3>
+          <input id="t-mint" type="hidden">
+          <div id="t-wallet"></div>
+        </aside>
+      </div>
+    </main>
+
+    <!-- wallets -->
+    <main class="view" id="v-wallets" hidden>
+      <div class="view-head view-head-row">
+        <div>
+          <h2>Your wallets</h2>
+          <p>Every fresh wallet made in this browser. The keys live here only.</p>
+        </div>
+        <div class="head-actions">
+          <button type="button" class="btn btn-ghost btn-sm" id="import-btn">Import key</button>
+          <button type="button" class="btn btn-primary btn-sm" id="refresh-btn">Refresh</button>
+        </div>
+      </div>
+      <form class="import" id="import" hidden>
+        <input id="import-key" placeholder="Private key (base58) or key file contents" autocomplete="off" spellcheck="false">
+        <button class="btn btn-primary btn-sm" type="submit">Add</button>
+      </form>
+      <div id="wlist" class="wlist"></div>
+    </main>
+  </div>
+
+  <footer class="sbar" id="sbar">
+    <span class="sb-item" id="p-wallet"></span>
+    <span class="sb-item" id="sb-live"></span>
+    <span class="sb-item sb-right" id="sb-sol"></span>
+    <span class="sb-item">Non-custodial: keys stay in this browser</span>
+  </footer>
+
+  <footer class="foot">
+    <span class="foot-copy">&copy; 2026 Incognito. Keys are made and kept in your browser.</span>
+    <span class="foot-badge"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.6"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>Non-custodial</span>
+  </footer>
+
+  <div class="overlay" id="gate" hidden>
+    <form class="sheet" id="gate-form">
+      <div class="sheet-mark" data-logo></div>
+      <h3>Private launchpad</h3>
+      <p>Enter the password to continue.</p>
+      <input type="password" id="gate-pw" autocomplete="current-password" placeholder="Password">
+      <button class="btn btn-primary" type="submit">Enter</button>
+      <small class="bad" id="gate-err"></small>
+    </form>
+  </div>
+
+  <div class="overlay" id="qb-sheet" hidden>
+    <div class="sheet qb-sheet" role="dialog" aria-modal="true" aria-label="Quick buy">
+      <button type="button" class="icon-btn qb-x" data-qb="close" aria-label="Close">&times;</button>
+      <div id="qb-body"></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="picker" hidden>
+    <div class="sheet">
+      <h3>Connect a wallet</h3>
+      <div class="picker-list" id="picker-list"></div>
+      <button class="btn btn-ghost" type="button" id="picker-close">Cancel</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="/app.js?v=1"></script>
+</body>
+</html>
