@@ -799,7 +799,7 @@ function renderCoin() {
       <div><dt>5m volume</dt><dd>${fmtUsd(c.vol?.m5)}</dd></div>
       <div><dt>5m buys / sells</dt><dd><span class="up">${c.tx?.m5?.buys ?? '-'}</span> / <span class="down">${c.tx?.m5?.sells ?? '-'}</span></dd></div>
       ${tst.holders?.count != null ? `<div><dt>Holders</dt><dd>${fmtCount(tst.holders.count)}</dd></div>` : ''}
-      <div><dt>Top 10 holders</dt><dd>${tst.holders ? `${(tst.holders.top10 * 100).toFixed(1)}%` : '-'}</dd></div>
+      <div><dt>Top 10 holders</dt><dd>${tst.holders?.top10 != null ? `${(tst.holders.top10 * 100).toFixed(1)}%` : '-'}</dd></div>
       <div><dt>Dev holds</dt><dd>${tst.holders?.dev != null ? `${(tst.holders.dev * 100).toFixed(1)}%` : '-'}</dd></div>
     </dl>
     ${nonSol ? `<span class="chip" style="color:var(--warn)">Priced in ${c.quote ? `$${esc(c.quote)}` : 'another token'}, not SOL: not tradable here</span>` : ''}

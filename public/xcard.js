@@ -60,10 +60,10 @@ export function startXCards({ api, esc }) {
     if (p === undefined) {
       try {
         p = (await api(`/api/x?url=${encodeURIComponent(href)}`)).preview;
+        if (p) cache.set(href, p); // a miss is asked again on the next hover
       } catch {
         p = null;
       }
-      cache.set(href, p);
     }
     if (target !== el) return;
     card.innerHTML = html(p, href);
