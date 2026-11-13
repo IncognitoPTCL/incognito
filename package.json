@@ -11,10 +11,11 @@
     "start": "node server.mjs",
     "dev": "node --watch server.mjs",
     "build": "node build.mjs",
-    "test": "node --test test/sol.test.mjs",
+    "test": "node --test test/sol.test.mjs test/host.test.mjs",
     "deploy": "bash deploy.sh"
   },
   "devDependencies": {
+    "@dha-team/arbundles": "^1.2.0",
     "@solana/web3.js": "^1.99.0",
     "@vercel/blob": "^2.9.0",
     "esbuild": "^0.28.2",
