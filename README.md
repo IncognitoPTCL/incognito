@@ -86,7 +86,7 @@ npm test                     # byte parity with @solana/web3.js
 
 | Variable | Why |
 | --- | --- |
-| `SOLANA_RPC` | Your own RPC (Helius, Triton...). Without it the server falls back to two public endpoints, which rate-limit under load. |
+| `SOLANA_RPC` | Your own RPC URL (Helius, Triton...), or a bare Helius API key. Without it the server falls back to two public endpoints, which rate-limit under load. It is never echoed in a response. |
 | `PINATA_JWT` | Optional: host launch images on IPFS through Pinata instead of Arweave. |
 | `PAD_PASSWORD` | Optional: ask for a password before anything works. |
 | `LAUNCH_PRIORITY_FEE_SOL`, `LAUNCH_MAX_BUY_SOL` | Priority fee and first-buy cap. |
