@@ -4,6 +4,7 @@
 import { passes, activeCount, openFilters, FILTER_ICON } from './filters.js';
 import { fmtUsd, age } from './terminal.js';
 import { safeUrl } from './safe.js';
+import { popRows, slideTo } from './motion.js';
 
 const TF = { m5: '5m', h1: '1h', h6: '6h', h24: '24h' };
 const BOLT = '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>';
@@ -34,6 +35,8 @@ export function createDiscover(ctx) {
   let visible = false;
   let timers = [];
   let loading = true;
+  let popNext = false;
+  let tfShown = false;
 
   const metrics = (c) => ({
     mc: c.marketCap, liq: c.liquidity, vol: c.vol?.[tf] ?? null,
@@ -73,7 +76,7 @@ export function createDiscover(ctx) {
         </div>
         ${spark(c.chg)}
       </div>
-      <div class="dc dc-num"><b>${fmtUsd(m.mc)}</b>${ch == null ? '' : `<span class="${ch >= 0 ? 'up' : 'down'}">${ch >= 0 ? '+' : ''}${Number(ch).toFixed(1)}%</span>`}</div>
+      <div class="dc dc-num"><b>${fmtUsd(m.mc)}</b>${ch == null ? '' : `<span class="${ch > 0 ? 'up' : ch < 0 ? 'down' : 'flat'}">${ch >= 0 ? '+' : ''}${Number(ch).toFixed(1)}%</span>`}</div>
       <div class="dc dc-num"><b>${fmtUsd(m.liq)}</b></div>
       <div class="dc dc-num"><b>${fmtUsd(m.vol)}</b></div>
       <div class="dc dc-num"><b>${m.tx == null ? '-' : m.tx.toLocaleString()}</b><span><i class="up">${(t.buys ?? 0).toLocaleString()}</i> / <i class="down">${(t.sells ?? 0).toLocaleString()}</i></span></div>
@@ -95,6 +98,12 @@ export function createDiscover(ctx) {
     const n = activeCount('discover');
     document.getElementById('d-filter-n').textContent = n ? n : '';
     document.querySelectorAll('#d-tf button').forEach((b) => b.classList.toggle('on', b.dataset.tf === tf));
+    slideTo(document.querySelector('.tf-ind'), document.querySelector('#d-tf button.on'), !tfShown);
+    tfShown = true;
+    if (popNext && list.length) {
+      popNext = false;
+      popRows([...body.querySelectorAll('.dr')].slice(0, 14));
+    }
     document.querySelectorAll('.dt-head [data-sort]').forEach((h) => {
       h.classList.toggle('on', h.dataset.sort === sort.key);
       h.dataset.dir = h.dataset.sort === sort.key ? (sort.dir < 0 ? 'down' : 'up') : '';
@@ -115,6 +124,16 @@ export function createDiscover(ctx) {
   });
   document.getElementById('d-filter').addEventListener('click', () => openFilters('discover'));
   document.getElementById('d-body').addEventListener('click', (e) => {
+    // a click anywhere on the coin (not on its own buttons or links) opens its chart
+    if (!e.target.closest('a, button, input, label, [data-copy]')) {
+      const hit = e.target.closest('.dr[data-mint]');
+      if (hit) {
+        const to = `#/trade?m=${hit.dataset.mint}`;
+        if (e.ctrlKey || e.metaKey) window.open(to, '_blank');
+        else location.hash = to;
+        return;
+      }
+    }
     const cp = e.target.closest('[data-copy]');
     if (cp) return copy(cp.dataset.copy, 'Contract address copied');
     const qb = e.target.closest('[data-qb]');
@@ -126,6 +145,7 @@ export function createDiscover(ctx) {
     show() {
       if (visible) return;
       visible = true;
+      popNext = true;
       render();
       safe(loadSeed)();
       timers = [setInterval(safe(loadMarket), 15_000), setInterval(safe(loadSeed), 60_000)];

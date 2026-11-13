@@ -2,6 +2,8 @@
 // market cap, liquidity, volume, age, transactions, bonding progress, socials, DEX paid and
 // keywords. Each list keeps its own set in localStorage. One panel element edits whichever list
 // opened it.
+import { openSheet } from './motion.js';
+
 const KEY = 'incognito:filters:v1';
 const BLANK = { mcMin: '', mcMax: '', liqMin: '', volMin: '', ageMin: '', ageMax: '', txMin: '', progMin: '', progMax: '', x: false, tg: false, web: false, paid: false, include: '', exclude: '' };
 const NAMES = { discover: 'Discover', new: 'New pairs', fin: 'Final stretch', mig: 'Migrated' };
@@ -121,6 +123,7 @@ export function openFilters(list) {
   }
   panel.querySelector('#f-title').textContent = `Filters: ${NAMES[list] || list}`;
   panel.hidden = false;
+  openSheet(panel);
   form.elements.mcMin.focus();
 }
 

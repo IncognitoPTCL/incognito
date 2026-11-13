@@ -484,3 +484,148 @@ body.is-term .sbar { display: flex; }
 .fee-note a:hover, .foot-copy a:hover { color: #fff; }
 .sb-link { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
 .sb-link:hover { color: #fff; }
+
+/* ==================================================================== design pass (2026-11-12)
+   One radius system (tight: 8 panels, 6 controls, 4 chips), no glows, tabular figures on every
+   number, the homepage set larger and quieter, and the states every control was missing. */
+:root { --r-panel: 8px; --r-control: 6px; --r-chip: 4px; --ease-out: cubic-bezier(.16, 1, .3, 1); }
+
+/* radii */
+.card, .pcol, .dtable, .coin-bar, .chart-box, .trade-box, .w, .empty, .drop, .xcard, .sheet { border-radius: var(--r-panel); }
+.btn, .connect, .top-search, .qb, .pc-buy, .buy-btn, .cb-links a, .x-link, .foot-badge, .tool-btn, .icon-btn,
+input, textarea, select, .addr, .stat, .notice, .picker-list button, .tf { border-radius: var(--r-control); }
+.chips button, .tf button, .chip, .dr-dex, .pc-img, .dr-img, .dr-img img, .w-img, .done-card img, .cb-id img, .cb-ph { border-radius: var(--r-chip); }
+.toast { border-radius: var(--r-control); }
+
+/* no glows: hover is a tone step */
+.btn-primary:not(:disabled):hover, .connect:hover, body.is-term .connect:hover, .qb-go:not(:disabled):hover { box-shadow: none; }
+.live-dot.on::before { box-shadow: none; }
+
+/* tactile press on every control */
+.btn, .connect, .pc-buy, .buy-btn, .tool-btn, .icon-btn, .chips button, .tf button, .x-link, .cb-links a, .picker-list button, .pc-ca {
+  transition: transform .12s var(--ease-out), background-color .15s ease, color .15s ease, border-color .15s ease;
+}
+.btn:not(:disabled):active, .connect:active, .pc-buy:active, .buy-btn:active, .tool-btn:active, .icon-btn:active,
+.chips button:active, .tf button:active, .x-link:active, .cb-links a:active, .picker-list button:active { transform: scale(.96); }
+:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* figures line up */
+.pc-stats, .dc-num, .cb-stats dd, .stat b, .w-bal, .qb input, .sb-item b, #buy, #t-buy, #fund-amt, #t-fund-amt, #qb-fund { font-variant-numeric: tabular-nums; }
+
+/* ---------------------------------------------------------------- homepage */
+.home { padding-bottom: 12vh; }
+.home-mark { margin-bottom: 28px; }
+.home-title { font-size: clamp(44px, 5.4vw, 80px); line-height: 1; letter-spacing: -.042em; font-weight: 500; }
+.home-title .hw-mask { padding-bottom: .1em; margin-bottom: -.1em; } /* descenders stay inside the mask */
+.home-lede { margin-top: 24px; font-size: 18px; line-height: 1.5; color: rgba(255, 255, 255, .72); max-width: 470px; }
+.home-lede .hl-mask { padding-bottom: .08em; margin-bottom: -.08em; }
+.home-ctas { margin-top: 34px; gap: 10px; }
+.home-ctas .btn { padding: 13px 22px; font-size: 15px; font-weight: 500; }
+/* before the reveal runs, the words wait unseen (never with motion off or without script) */
+html.motion .home-title, html.motion .home-lede, html.motion .home-ctas .btn { visibility: hidden; }
+/* GSAP owns the entrance now */
+.home-title span, .home-lede, .home-ctas { opacity: 1; transform: none; transition: none; }
+body.is-in .home-title span, body.is-in .home-lede, body.is-in .home-ctas { transition: none; }
+
+/* footer: a tone step, not a hairline */
+.foot { border-top: 0; padding-top: 20px; padding-bottom: 22px; }
+.foot-copy { font-size: 13px; }
+@media (max-width: 640px) {
+  .home-title { font-size: clamp(30px, 8.2vw, 38px); letter-spacing: -.035em; }
+  .home-lede { font-size: 16px; margin-top: 18px; }
+  .home-ctas .btn { padding: 15px 20px; }
+}
+
+/* ------------------------------------------------------- nav and tab indicators */
+.nav { position: relative; }
+.nav a[aria-current="page"]::after { display: none; }
+.nav-ind { position: absolute; left: 0; bottom: -7px; height: 2px; width: 0; border-radius: 2px; background: #fff; opacity: 0; pointer-events: none; will-change: transform; }
+body.is-term .nav-ind { background: var(--accent-hi); }
+.tf { position: relative; isolation: isolate; }
+.tf button.on { background: none; }
+.tf-ind { position: absolute; top: 2px; bottom: 2px; left: 0; width: 0; border-radius: var(--r-chip); background: rgba(91, 107, 255, .16); z-index: -1; opacity: 0; pointer-events: none; }
+
+/* --------------------------------------------------------------- app screens */
+.view-head h1, .pulse-bar h1, .cb-id h1 { margin: 0; }
+.view-head h1 { font-size: 24px; font-weight: 600; letter-spacing: -.015em; }
+.pulse-bar h1 { font-size: 20px; font-weight: 600; letter-spacing: -.01em; }
+.cb-id h1 { font-size: 17px; font-weight: 600; white-space: nowrap; }
+.cb-id h1 span { color: var(--muted); font-weight: 500; font-size: 14px; }
+.view-head p { font-size: 14px; }
+.card h3 { font-size: 15px; }
+/* hover answers on what you can click */
+.w { transition: border-color .15s ease, background-color .15s ease; }
+.w:hover { border-color: rgba(255, 255, 255, .16); }
+.dt-body .dr { transition: background-color .15s ease; }
+.pcol-list .pc { transition: background-color .15s ease; }
+/* sheets float, so they may carry a shadow */
+.sheet, .xcard { box-shadow: 0 24px 60px rgba(0, 0, 0, .5); }
+
+/* view entrance is GSAP's job when motion is on */
+html.motion .view, html.motion .term { animation: none; }
+
+/* design pass, round 2: tone steps instead of outlines, a phone header that folds, a phone headline in two lines */
+.x-link { border: 0; background: rgba(255, 255, 255, .06); }
+.x-link:hover { background: rgba(255, 255, 255, .12); }
+.foot-badge { border: 0; background: rgba(255, 255, 255, .06); font-size: 14px; }
+a.foot-badge:hover { background: rgba(255, 255, 255, .12); color: #fff; }
+.foot-copy { font-size: 14px; }
+@media (max-width: 640px) {
+  .top { flex-wrap: wrap; row-gap: 12px; }
+  .top-left { display: contents; }
+  .brand { order: 1; }
+  .top-right { order: 2; margin-left: auto; gap: 8px; }
+  .nav { order: 3; width: 100%; justify-content: space-between; gap: 0; }
+  .nav a { font-size: 15px; padding: 4px 0; }
+  .home { padding-left: 16px; padding-right: 16px; }
+  .home-title { font-size: clamp(26px, 7.4vw, 38px); }
+}
+
+.foot a.foot-badge { margin-left: auto; }
+@media (max-width: 640px) { .foot a.foot-badge { margin-left: 0; } }
+
+.pc-chg.flat, .dc-num .flat { color: var(--muted); }
+.dt-head .dc { white-space: nowrap; }
+@media (max-width: 860px) { .sbar .sb-item:nth-last-child(-n+2) { display: none; } .sbar { gap: 14px; overflow: hidden; } }
+
+/* coins open their chart on a click anywhere */
+.pc[data-mint], .dt-body .dr[data-mint] { cursor: pointer; }
+
+/* ------------------------------------------------------------ coin page, terminal style */
+.coin-grid { grid-template-columns: minmax(0, 1fr) 360px; }
+.chart-box { height: calc(100vh - 186px); height: calc(100svh - 186px); }
+.cb-mc { display: flex; flex-direction: column; gap: 1px; padding-right: 8px; }
+.cb-mc b { font-size: 24px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.cb-mc span { font-size: 11.5px; color: var(--muted); }
+.cb-stats { gap: 22px; }
+.trade-box h3 { display: none; }
+.tp-side { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; background: var(--inset); border-radius: var(--r-control); margin-bottom: 14px; }
+.tp-side button { border: 0; background: none; color: var(--muted); font: 600 14px Inter, sans-serif; padding: 9px; border-radius: var(--r-chip); cursor: pointer; transition: background-color .15s ease, color .15s ease; }
+.tp-side button[data-side="buy"].on { background: rgba(74, 222, 128, .16); color: var(--ok); }
+.tp-side button[data-side="sell"].on { background: rgba(248, 113, 113, .16); color: var(--bad); }
+.tp-amount { display: flex; align-items: center; gap: 10px; padding: 0 12px; height: 46px; background: var(--inset); border: 1px solid var(--line-2); border-radius: var(--r-control); }
+.tp-amount span { font-size: 12.5px; color: var(--muted); }
+.tp-amount input { border: 0; background: none; padding: 0; height: 100%; text-align: right; font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; box-shadow: none; }
+.tp-amount em { font-style: normal; font-size: 13px; color: var(--muted); }
+.tp-presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 10px 0 12px; }
+.tp-presets button { height: 34px; border: 1px solid var(--line-2); background: none; color: #fff; font: 600 13px Inter, sans-serif; font-variant-numeric: tabular-nums; border-radius: var(--r-chip); cursor: pointer; transition: background-color .15s ease, border-color .15s ease, transform .12s var(--ease-out); }
+.tp-presets button:hover { background: rgba(255, 255, 255, .06); border-color: rgba(255, 255, 255, .3); }
+.tp-presets button:active { transform: scale(.96); }
+.tp-presets button.on { border-color: var(--bad); color: var(--bad); background: rgba(248, 113, 113, .08); }
+.tp-go { height: 48px; font-size: 15px; font-weight: 700; }
+.tp-buy { background: var(--ok); color: #052e14; }
+.tp-buy:not(:disabled):hover { background: #6ee7a0; }
+.tp-sell { background: var(--bad); color: #3b0a0a; }
+.tp-sell:not(:disabled):hover { background: #fb9191; }
+.tp-pos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin: 14px 0 0; background: var(--line); border-radius: var(--r-control); overflow: hidden; }
+.tp-pos div { background: var(--surface); padding: 10px 12px; }
+.tp-pos dt { font-size: 11.5px; color: var(--muted); }
+.tp-pos dd { margin: 2px 0 0; font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tp-wallet { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+.tp-wallet summary { cursor: pointer; font-size: 13px; color: var(--muted); list-style: none; display: flex; align-items: center; gap: 8px; }
+.tp-wallet summary::-webkit-details-marker { display: none; }
+.tp-wallet summary::after { content: ""; margin-left: auto; width: 7px; height: 7px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); transition: transform .2s ease; }
+.tp-wallet[open] summary::after { transform: rotate(-135deg); }
+.tp-wallet summary code { font-family: var(--mono); color: #fff; font-size: 12px; }
+.tp-hint { margin: 10px 0 0; font-size: 12.5px; color: var(--muted); }
+@media (max-width: 1100px) { .coin-grid { grid-template-columns: minmax(0, 1fr) 330px; } }

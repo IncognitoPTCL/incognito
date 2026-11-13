@@ -6,6 +6,7 @@ import { createDiscover } from './discover.js';
 import { initFilters } from './filters.js';
 import { hostOnArweave } from './host.js';
 import { safeUrl } from './safe.js';
+import { revealHome, routeOut, routeIn, popItems, openSheet, slideTo } from './motion.js';
 
 const pixels = startPixels(document.getElementById('px'));
 import {
@@ -185,6 +186,7 @@ async function confirmSig(sig, ms = 80_000) {
 /* --------------------------------------------------------- password gate */
 function showGate() {
   $('gate').hidden = false;
+  openSheet($('gate'));
   setTimeout(() => $('gate-pw').focus(), 50);
 }
 $('gate-form').addEventListener('submit', async (e) => {
@@ -235,6 +237,7 @@ function chooseWallet() {
   return new Promise((resolve, reject) => {
     $('picker-list').innerHTML = list.map((w, i) => `<button type="button" data-i="${i}">${w.icon ? `<img src="${esc(w.icon)}" alt="">` : ''}${esc(w.name)}</button>`).join('');
     $('picker').hidden = false;
+    openSheet($('picker'));
     $('picker-list').onclick = (e) => {
       const b = e.target.closest('button');
       if (!b) return;
@@ -621,6 +624,16 @@ async function refreshBalances() {
   if (!wallets.length) return;
   try {
     wst.bal = await balances(wallets.map((w) => w.address));
+    // update the figures in place when the rows are already there, so nothing re-enters
+    const rows = $('wlist').querySelectorAll('.w[data-a]');
+    if (rows.length === wallets.length && !wst.open) {
+      rows.forEach((r) => {
+        const lam = wst.bal[r.dataset.a];
+        const b = r.querySelector('.w-bal b');
+        if (b && lam !== undefined) b.textContent = `${sol(lam)} SOL`;
+      });
+      return;
+    }
   } catch (e) {
     toast(e.message);
   }
@@ -646,7 +659,7 @@ function renderWallets() {
       more = `<div class="w-more"><p>This deletes the key from this browser. Anything still in the wallet (SOL, tokens, creator fees) is then only reachable with your backup.</p><button type="button" class="btn btn-ghost btn-sm" data-act="close" data-a="${w.address}">Keep it</button><button type="button" class="btn btn-primary btn-sm" data-act="forget-go" data-a="${w.address}">Delete key</button></div>`;
     }
     const status = c ? (c.status === 'live' ? 'Live' : c.status === 'sent' ? 'Confirming' : esc(c.status)) : 'Unused';
-    return `<div class="w">
+    return `<div class="w" data-a="${w.address}">
       ${c?.image ? `<img class="w-img" src="${esc(c.image)}" alt="">` : '<span class="w-img">new</span>'}
       <div class="w-main"><b>${c ? `${esc(c.name)} <span class="ok-text">$${esc(c.symbol)}</span>` : 'Fresh wallet'}</b><code data-copy="${w.address}" title="Copy address">${short(w.address)}</code>${w.backedUp ? '' : ' <span class="bad" style="font-size:12px">not backed up</span>'}</div>
       <div class="w-bal"><b>${lam === undefined ? '...' : `${sol(lam)} SOL`}</b><span>${status} · ${new Date(w.createdAt).toLocaleDateString()}</span></div>
@@ -752,6 +765,7 @@ function tlog(html, cls = 'run') {
   if (el) el.innerHTML = tst.log.length ? `<ul class="log">${tst.log.map((l) => `<li class="${l.cls}">${l.html}</li>`).join('')}</ul>` : '';
 }
 
+const fmtCount = (n) => (n >= 1e9 ? `${+(n / 1e9).toFixed(2)}B` : n >= 1e6 ? `${+(n / 1e6).toFixed(2)}M` : n.toLocaleString());
 const pct = (v) => (v == null ? '' : `<span class="${v >= 0 ? 'up' : 'down'}">${v >= 0 ? '+' : ''}${Number(v).toFixed(1)}%</span>`);
 
 function renderCoin() {
@@ -773,18 +787,20 @@ function renderCoin() {
   bar.innerHTML = `
     <div class="cb-id">
       ${image ? `<img src="${esc(image)}" alt="" referrerpolicy="no-referrer">` : `<span class="cb-ph">${esc((symbol || name).slice(0, 2).toUpperCase())}</span>`}
-      <div><h2>${esc(name)} <span>${symbol ? `$${esc(symbol)}` : ''}</span></h2>
+      <div><h1>${esc(name)} <span>${symbol ? `$${esc(symbol)}` : ''}</span></h1>
       <button type="button" class="pc-ca" data-copy="${tst.mint}">${short(tst.mint)} <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></button></div>
     </div>
+    <div class="cb-mc"><b>${fmtUsd(mc)}</b><span>Market cap ${pct(c.change24h) ? `${pct(c.change24h)} 24h` : ''}</span></div>
     <dl class="cb-stats">
-      <div><dt>Market cap</dt><dd>${fmtUsd(mc)}</dd></div>
       <div><dt>Price</dt><dd>${c.priceUsd ? `$${c.priceUsd < 0.0001 ? c.priceUsd.toExponential(2) : c.priceUsd.toPrecision(3)}` : '-'}</dd></div>
       <div><dt>Liquidity</dt><dd>${fmtUsd(c.liquidity)}</dd></div>
-      <div><dt>24h volume</dt><dd>${fmtUsd(c.volume)}</dd></div>
-      <div><dt>5m</dt><dd>${pct(c.change5m) || '-'}</dd></div>
-      <div><dt>1h</dt><dd>${pct(c.change1h) || '-'}</dd></div>
-      <div><dt>24h</dt><dd>${pct(c.change24h) || '-'}</dd></div>
-      ${prog != null ? `<div class="cb-prog"><dt>Bonding curve</dt><dd><i><b style="width:${(prog * 100).toFixed(1)}%"></b></i>${(prog * 100).toFixed(0)}%</dd></div>` : ''}
+      <div><dt>Supply</dt><dd>${tst.holders?.supply ? fmtCount(tst.holders.supply) : '-'}</dd></div>
+      ${prog != null ? `<div class="cb-prog"><dt>Bonding curve</dt><dd><i><b style="width:${(prog * 100).toFixed(1)}%"></b></i>${(prog * 100).toFixed(1)}%</dd></div>` : ''}
+      <div><dt>5m volume</dt><dd>${fmtUsd(c.vol?.m5)}</dd></div>
+      <div><dt>5m buys / sells</dt><dd><span class="up">${c.tx?.m5?.buys ?? '-'}</span> / <span class="down">${c.tx?.m5?.sells ?? '-'}</span></dd></div>
+      ${tst.holders?.count != null ? `<div><dt>Holders</dt><dd>${fmtCount(tst.holders.count)}</dd></div>` : ''}
+      <div><dt>Top 10 holders</dt><dd>${tst.holders ? `${(tst.holders.top10 * 100).toFixed(1)}%` : '-'}</dd></div>
+      <div><dt>Dev holds</dt><dd>${tst.holders?.dev != null ? `${(tst.holders.dev * 100).toFixed(1)}%` : '-'}</dd></div>
     </dl>
     ${nonSol ? `<span class="chip" style="color:var(--warn)">Priced in ${c.quote ? `$${esc(c.quote)}` : 'another token'}, not SOL: not tradable here</span>` : ''}
     <div class="cb-links">
@@ -815,6 +831,14 @@ async function refreshCoin() {
       const acc = await rpc('getAccountInfo', [curveAddr, { encoding: 'base64', commitment: 'confirmed' }]);
       if (acc.value?.data?.[0]) tst.curve = readCurve(acc.value.data[0]);
     }
+    if (!tst.holdersAt || Date.now() - tst.holdersAt > 30_000) {
+      tst.holdersAt = Date.now();
+      const q = new URLSearchParams({ mint: m });
+      if (curveAddr) q.set('curve', curveAddr);
+      if (tst.coin?.dex === 'pumpswap' && tst.coin.pair) q.set('pool', tst.coin.pair);
+      const h = await api(`/api/holders?${q}`).catch(() => null);
+      if (m === tst.mint && h?.holders) tst.holders = h.holders;
+    }
   } catch { /* details are optional */ }
   if (m === tst.mint) renderCoin();
 }
@@ -824,6 +848,8 @@ async function loadCoin(m) {
   tst.mint = isAddress(m) ? m : '';
   tst.coin = null;
   tst.curve = null;
+  tst.holders = null;
+  tst.holdersAt = 0;
   tst.tokens = null;
   tst.log = [];
   renderCoin();
@@ -835,6 +861,14 @@ $('t-coin').addEventListener('click', (e) => {
   const cp = e.target.closest('[data-copy]');
   if (cp) copy(cp.dataset.copy, 'Contract address copied');
 });
+
+function holdValue() {
+  const price = tst.coin?.priceUsd;
+  const solUsd = pulse.solUsd();
+  if (!tst.tokens || !price) return tst.tokens === 0 ? '$0' : '-';
+  const usd = tst.tokens * price;
+  return `${fmtUsd(usd)}${solUsd ? ` · ${(usd / solUsd).toFixed(3)} SOL` : ''}`;
+}
 
 function renderTradeWallet() {
   const box = $('t-wallet');
@@ -857,45 +891,46 @@ function renderTradeWallet() {
   const opts = [...wallets].reverse().filter((x) => x.backedUp)
     .map((x) => `<option value="${x.address}"${x.address === w.address ? ' selected' : ''}>${short(x.address)}${x.coin ? ` (deployed $${esc(x.coin.symbol)})` : ''}</option>`).join('');
   const sym = tst.coin?.symbol ? `$${esc(tst.coin.symbol)}` : 'tokens';
+  const side = tst.side || 'buy';
+  const pctSel = tst.sellPct || '100%';
+  const low = tst.sol !== null && tst.sol < 0.02e9;
   box.innerHTML = `
-    <div class="fund" style="margin-top:0">
-      <select id="t-w" aria-label="Trading wallet">${opts}</select>
-      <button type="button" class="btn btn-ghost" data-tact="make">New fresh wallet</button>
+    <div class="tp-side" role="tablist" aria-label="Buy or sell">
+      <button type="button" role="tab" data-side="buy" aria-selected="${side === 'buy'}" class="${side === 'buy' ? 'on' : ''}">Buy</button>
+      <button type="button" role="tab" data-side="sell" aria-selected="${side === 'sell'}" class="${side === 'sell' ? 'on' : ''}">Sell</button>
     </div>
-    <div style="margin-top:10px">${addrRow(w.address)}</div>
-    <div class="stats">
-      <div class="stat"><b id="t-sol">${tst.sol === null ? '...' : `${sol(tst.sol)} SOL`}</b><span>In the wallet</span></div>
-      <div class="stat"><b id="t-tok">${!tst.mint ? '-' : tst.tokens === null ? '...' : tst.tokens.toLocaleString(undefined, { maximumFractionDigits: 2 })}</b><span>${sym} held</span></div>
+    <div class="tp-pane" ${side === 'buy' ? '' : 'hidden'}>
+      <label class="tp-amount"><span>Amount</span><input id="t-buy" type="number" min="0" step="0.01" value="${esc(tst.buyAmt || '0.25')}" inputmode="decimal"><em>SOL</em></label>
+      <div class="tp-presets" id="t-buy-chips">${['0.25', '0.5', '1', '2'].map((v) => `<button type="button" data-v="${v}">${v}</button>`).join('')}</div>
+      <button type="button" class="btn btn-block tp-go tp-buy" data-tact="buy" ${tst.mint && !tst.busy ? '' : 'disabled'}>Buy ${sym}</button>
     </div>
-    <div id="t-fund" ${tst.sol !== null && tst.sol >= 0.02e9 ? 'hidden' : ''}>
-      <div class="notice calm">Send SOL to the address above from any wallet or exchange, or:</div>
-      <div class="fund">
-        <input id="t-fund-amt" type="number" min="0" step="0.01" value="0.1" inputmode="decimal" aria-label="SOL to send">
-        <button type="button" class="btn btn-ghost" data-tact="fund">Send from my wallet</button>
-      </div>
+    <div class="tp-pane" ${side === 'sell' ? '' : 'hidden'}>
+      <div class="tp-presets" id="t-sell-chips">${['25%', '50%', '75%', '100%'].map((v) => `<button type="button" data-p="${v}" class="${v === pctSel ? 'on' : ''}">${v}</button>`).join('')}</div>
+      <button type="button" class="btn btn-block tp-go tp-sell" data-tact="sell" data-pct="${pctSel}" ${tst.mint && tst.tokens && !tst.busy ? '' : 'disabled'}>Sell ${pctSel === '100%' ? 'all' : pctSel} ${sym}</button>
     </div>
-    <div class="sep"></div>
-    <div class="field">
-      <span>Buy</span>
-      <div class="buy">
-        <input id="t-buy" type="number" min="0" step="0.01" value="0.1" inputmode="decimal" aria-label="SOL to spend"><em>SOL</em>
-        <div class="chips" id="t-buy-chips"><button type="button" data-v="0.1">0.1</button><button type="button" data-v="0.5">0.5</button><button type="button" data-v="1">1</button></div>
-      </div>
-    </div>
-    <button type="button" class="btn btn-primary btn-block" data-tact="buy" ${tst.mint && !tst.busy ? '' : 'disabled'}>Buy</button>
-    <small class="fee-note">Fees: pump.fun\'s trading fee, 0.5% to PumpPortal (which builds the trade) and Solana network fees. Incognito takes none. <a href="/legal.html#risk" target="_blank" rel="noopener">Risks</a></small>
-    <div class="field" style="margin:16px 0 8px"><span>Sell</span></div>
-    <div class="btn-row">
-      <button type="button" class="btn btn-ghost" data-tact="sell" data-pct="25%" ${tst.mint && tst.tokens && !tst.busy ? '' : 'disabled'}>25%</button>
-      <button type="button" class="btn btn-ghost" data-tact="sell" data-pct="50%" ${tst.mint && tst.tokens && !tst.busy ? '' : 'disabled'}>50%</button>
-      <button type="button" class="btn btn-ghost" data-tact="sell" data-pct="100%" ${tst.mint && tst.tokens && !tst.busy ? '' : 'disabled'}>Sell all</button>
-    </div>
+    <dl class="tp-pos">
+      <div><dt>Holding</dt><dd id="t-tok">${!tst.mint ? '-' : tst.tokens === null ? '...' : tst.tokens.toLocaleString(undefined, { maximumFractionDigits: 0 })}</dd></div>
+      <div><dt>Value</dt><dd id="t-val">${holdValue()}</dd></div>
+      <div><dt>Wallet</dt><dd id="t-sol">${tst.sol === null ? '...' : `${sol(tst.sol)} SOL`}</dd></div>
+    </dl>
     <div id="t-log"></div>
-    <div class="sep"></div>
-    <div class="fund">
-      <input id="t-wd" data-main-dest placeholder="Your wallet address" value="${esc(main.account?.address || '')}" autocomplete="off" spellcheck="false">
-      <button type="button" class="btn btn-ghost" data-tact="withdraw">Withdraw SOL</button>
-    </div>`;
+    <small class="fee-note">Fees: pump.fun's trading fee, 0.5% to PumpPortal (which builds the trade) and Solana network fees. Incognito takes none. <a href="/legal.html#risk" target="_blank" rel="noopener">Risks</a></small>
+    <details class="tp-wallet" ${low ? 'open' : ''}>
+      <summary>Trading wallet <code>${short(w.address)}</code></summary>
+      <div class="fund" style="margin-top:10px">
+        <select id="t-w" aria-label="Trading wallet">${opts}</select>
+        <button type="button" class="btn btn-ghost" data-tact="make">New</button>
+      </div>
+      <div style="margin-top:10px">${addrRow(w.address)}</div>
+      <div id="t-fund" ${low ? '' : 'hidden'}>
+        <p class="tp-hint">Send SOL to the address above from any wallet or exchange, or:</p>
+        <div class="fund"><input id="t-fund-amt" type="number" min="0" step="0.01" value="0.1" inputmode="decimal" aria-label="SOL to send"><button type="button" class="btn btn-ghost" data-tact="fund">Send from my wallet</button></div>
+      </div>
+      <div class="fund" style="margin-top:10px">
+        <input id="t-wd" data-main-dest placeholder="Your wallet address" value="${esc(main.account?.address || '')}" autocomplete="off" spellcheck="false">
+        <button type="button" class="btn btn-ghost" data-tact="withdraw">Withdraw SOL</button>
+      </div>
+    </details>`;
   if (tst.log.length) $('t-log').innerHTML = `<ul class="log">${tst.log.map((l) => `<li class="${l.cls}">${l.html}</li>`).join('')}</ul>`;
 }
 
@@ -907,7 +942,8 @@ async function pollTrade() {
     if (tst.mint) tst.tokens = await tokenBalance(w.address, tst.mint);
   } catch { return; }
   if ($('t-sol')) $('t-sol').textContent = `${sol(tst.sol)} SOL`;
-  if ($('t-tok')) $('t-tok').textContent = !tst.mint ? '-' : tst.tokens.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  if ($('t-tok')) $('t-tok').textContent = !tst.mint ? '-' : tst.tokens.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  if ($('t-val')) $('t-val').textContent = holdValue();
   if ($('t-fund')) $('t-fund').hidden = tst.sol >= 0.02e9;
   $('t-wallet').querySelectorAll('[data-tact="sell"]').forEach((b) => { b.disabled = !tst.mint || !tst.tokens || tst.busy; });
 }
@@ -959,6 +995,20 @@ $('t-wallet').addEventListener('click', async (e) => {
   const chip = e.target.closest('#t-buy-chips button');
   if (chip) {
     $('t-buy').value = chip.dataset.v;
+    tst.buyAmt = chip.dataset.v;
+    return;
+  }
+  const sideBtn = e.target.closest('[data-side]');
+  if (sideBtn) {
+    tst.side = sideBtn.dataset.side;
+    if (tst.side === 'sell') tst.buyAmt = $('t-buy')?.value || tst.buyAmt;
+    renderTradeWallet();
+    return;
+  }
+  const pc = e.target.closest('#t-sell-chips button');
+  if (pc) {
+    tst.sellPct = pc.dataset.p;
+    renderTradeWallet();
     return;
   }
   const b = e.target.closest('[data-tact],[data-copy]');
@@ -975,12 +1025,14 @@ $('t-wallet').addEventListener('click', async (e) => {
       tst.tokens = null;
       tst.log = [];
       renderTradeWallet();
+      paintPulseWallet();
       return;
     }
     if (act === 'key-file' || act === 'key-copy') {
       await exportKey(w, act === 'key-file' ? 'file' : 'copy');
       renderTradeWallet();
       startTradePoll();
+      paintPulseWallet();
       return;
     }
     b.disabled = true;
@@ -1073,6 +1125,7 @@ async function pollQb() {
 function openQb(mint, amount) {
   Object.assign(qbs, { mint, amount, bal: null, busy: false, done: '', err: '' });
   $('qb-sheet').hidden = false;
+  openSheet($('qb-sheet'));
   renderQb();
   clearInterval(qbs.poll);
   qbs.poll = setInterval(pollQb, 3000);
@@ -1229,6 +1282,9 @@ function route() {
     if (a.dataset.r === view) a.setAttribute('aria-current', 'page');
     else a.removeAttribute('aria-current');
   });
+  slideTo(document.querySelector('.nav-ind'), document.querySelector('.nav a[aria-current]'), !routed);
+  routed = true;
+  if (view === 'home') revealHome();
   if (view === 'launch') {
     renderDep();
     startPoll();
@@ -1237,26 +1293,27 @@ function route() {
   }
   if (view === 'wallets') {
     renderWallets();
+    popItems([...$('wlist').querySelectorAll('.w')]);
     refreshBalances();
   }
   window.scrollTo(0, 0);
 }
-// page change: the screen fades to grey, the next page is put in place underneath, then the grey
-// fades away to show it. A second click mid-fade just retargets the page that is revealed.
-const fader = document.createElement('div');
-fader.className = 'fader';
-fader.setAttribute('aria-hidden', 'true');
-document.body.append(fader);
-const instant = matchMedia('(prefers-reduced-motion: reduce)').matches;
-let fadeTimer = 0;
+// page change: the current view fades out to the charcoal ground (140 ms), the next one rises in
+// (240 ms). Header and status bar stay put. Changes queue, so back and forward behave.
+let routed = false;
+let navigating = Promise.resolve();
+const shownView = () => document.querySelector('#app > main:not([hidden])');
 window.addEventListener('hashchange', () => {
-  if (instant) return route();
-  clearTimeout(fadeTimer);
-  fader.classList.add('on');
-  fadeTimer = setTimeout(() => {
+  navigating = navigating.then(async () => {
+    await routeOut(shownView());
     route();
-    requestAnimationFrame(() => requestAnimationFrame(() => fader.classList.remove('on')));
-  }, 300);
+    routeIn(shownView());
+  }).catch(() => route());
+});
+let resizeT = 0;
+addEventListener('resize', () => {
+  clearTimeout(resizeT);
+  resizeT = setTimeout(() => slideTo(document.querySelector('.nav-ind'), document.querySelector('.nav a[aria-current]'), true), 120);
 });
 document.addEventListener('visibilitychange', () => { if (!document.hidden && st.poll) pollBalance(); });
 

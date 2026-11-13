@@ -9,6 +9,7 @@
 import { fromB64 } from './sol.js';
 import { passes, activeCount, openFilters } from './filters.js';
 import { safeUrl } from './safe.js';
+import { popRow, roll } from './motion.js';
 
 const NEW_MAX = 40;
 const FIN_MAX = 30;
@@ -55,6 +56,7 @@ export function createPulse(ctx) {
   const coins = new Map();
   const lists = { new: [], mig: [] };
   const els = new Map();
+  const painted = new Set();
   let ws = null;
   let retry = 0;
   let visible = false;
@@ -277,6 +279,7 @@ export function createPulse(ctx) {
     if (!el) {
       el = document.createElement('article');
       el.className = 'pc';
+      el.dataset.mint = c.mint;
       el.innerHTML = `
         <a class="pc-img" href="#/trade?m=${c.mint}" aria-label="Open coin"></a>
         <div class="pc-body">
@@ -286,6 +289,7 @@ export function createPulse(ctx) {
           <div class="pc-prog" hidden><i><b></b></i><span></span></div>
         </div>
         <button type="button" class="pc-buy" data-qb="${c.mint}" aria-label="Quick buy">${BOLT}<span></span></button>`;
+      el.dataset.fresh = '1';
       els.set(c.mint, el);
     }
     const img = el.querySelector('.pc-img');
@@ -298,11 +302,18 @@ export function createPulse(ctx) {
     el.querySelector('.pc-name').textContent = c.name || 'Unknown';
     el.querySelector('.pc-sym').textContent = c.symbol ? `$${c.symbol}` : '';
     el.querySelector('.pc-age').textContent = age(c.migratedAt || c.createdAt);
-    el.querySelector('.pc-mc').textContent = mcapUsd(c) != null ? fmtUsd(mcapUsd(c)) : c.mcapSol != null ? `${c.mcapSol.toFixed(1)} SOL` : '-';
+    const mcEl = el.querySelector('.pc-mc');
+    const mcText = mcapUsd(c) != null ? fmtUsd(mcapUsd(c)) : c.mcapSol != null ? `${c.mcapSol.toFixed(1)} SOL` : '-';
+    if (mcEl.textContent && mcEl.textContent !== mcText && mcEl.textContent !== '-' && mcText !== '-') {
+      const v = (t) => { const n = parseFloat(t.replace(/[^0-9.]/g, '')); return /B$/.test(t) ? n * 1e9 : /M$/.test(t) ? n * 1e6 : /K$/.test(t) ? n * 1e3 : n; };
+      mcEl.textContent = mcText;
+      roll(mcEl, v(mcText) > v(mcEl.dataset.was || mcText)); // rolls only when the value really changed
+    } else mcEl.textContent = mcText;
+    mcEl.dataset.was = mcText;
     el.querySelector('.pc-v').textContent = fmtUsd(c.volume);
     const chg = el.querySelector('.pc-chg');
     chg.textContent = c.change == null ? '' : `${c.change >= 0 ? '+' : ''}${Number(c.change).toFixed(1)}%`;
-    chg.className = `pc-chg ${c.change >= 0 ? 'up' : 'down'}`;
+    chg.className = `pc-chg ${c.change > 0 ? 'up' : c.change < 0 ? 'down' : 'flat'}`; // a zero change is grey, not good news
     const soc = el.querySelector('.pc-soc');
     const socKey = c.socials.map((s) => s.url).join('|');
     if (soc.dataset.k !== socKey) {
@@ -335,6 +346,10 @@ export function createPulse(ctx) {
     if (n && all.length && !mints.length) empty = 'Nothing here passes this column\'s filters.';
     const want = mints.map((m) => card(coins.get(m)));
     want.forEach((el, i) => { if (box.children[i] !== el) box.insertBefore(el, box.children[i] || null); });
+    // a row that arrives after the column first filled pops in; the first fill opens with its panel
+    const firstFill = !painted.has(id);
+    want.forEach((el) => { if (el.dataset.fresh) { delete el.dataset.fresh; if (!firstFill) popRow(el); } });
+    if (want.length) painted.add(id);
     while (box.children.length > want.length) box.lastElementChild.remove();
     if (!want.length) box.innerHTML = `<p class="pcol-empty">${empty}</p>`;
     else box.querySelector('.pcol-empty')?.remove();
@@ -351,6 +366,16 @@ export function createPulse(ctx) {
 
   /* ---------------------------------------------------------------- events */
   document.querySelector('.pulse-cols').addEventListener('click', (e) => {
+    // a click anywhere on the coin (not on its own buttons or links) opens its chart
+    if (!e.target.closest('a, button, input, label, [data-copy]')) {
+      const hit = e.target.closest('.pc[data-mint]');
+      if (hit) {
+        const to = `#/trade?m=${hit.dataset.mint}`;
+        if (e.ctrlKey || e.metaKey) window.open(to, '_blank');
+        else location.hash = to;
+        return;
+      }
+    }
     const cp = e.target.closest('[data-copy]');
     if (cp) {
       e.preventDefault();
