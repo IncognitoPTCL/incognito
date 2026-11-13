@@ -1,0 +1,24 @@
+name: Mainnet dry run
+
+# Builds every transaction type through the live site's API and simulates each on Solana mainnet:
+# buy, sell, PumpSwap buy, launch (with and without a first buy), creator-fee claim, withdraw.
+# Nothing is signed or sent, and no key or secret is used.
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Simulate against https://www.useincognito.fun
+        # public RPC and live coin lists can blip: one retry after a pause
+        run: npm run verify || (sleep 60 && npm run verify)

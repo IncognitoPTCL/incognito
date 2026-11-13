@@ -967,7 +967,8 @@ async function trade(w, action, amount, mint = tst.mint) {
     if (bal < (amount * 1.02 + TRADE_RESERVE) * 1e9) throw new Error(`The wallet holds ${sol(bal)} SOL. Buying ${amount} SOL needs about ${(amount * 1.02 + TRADE_RESERVE).toFixed(3)} SOL with fees.`);
   }
   tlog(`${action === 'buy' ? `Buying with ${esc(amount)} SOL` : `Selling ${esc(amount)}`}`);
-  const { tx } = await api('/api/trade', { publicKey: w.address, action, mint, amount });
+  const { tx, slippage } = await api('/api/trade', { publicKey: w.address, action, mint, amount });
+  if (slippage > 15) tlog(`The price is moving fast, so this ${action} allows up to ${slippage}% slippage`);
   const raw = fromB64(tx);
   const t = readTransaction(raw);
   if (t.signers.length !== 1 || t.signers[0] !== w.address || !(t.accounts.includes(PUMP_PROGRAM) || t.accounts.includes(PUMP_AMM))) {

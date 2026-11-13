@@ -7,3 +7,6 @@ build.mjs
 deploy.sh
 .env.local
 .env
+docs
+scripts
+.github
