@@ -637,3 +637,12 @@ a.foot-badge:hover { background: rgba(255, 255, 255, .12); color: #fff; }
   .coin-grid { grid-template-columns: minmax(0, 1fr); }
   .chart-box { height: 440px; min-height: 0; }
 }
+
+/* ------------------------------------------------------------ contract address chip (navbar) */
+.ca-chip { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border: 0; border-radius: 999px; background: rgba(255, 255, 255, .06); color: #fff; cursor: pointer; flex: none; transition: background .2s ease, transform .15s ease; }
+.ca-chip:hover { background: rgba(255, 255, 255, .12); }
+.ca-chip:active { transform: scale(.96); }
+.ca-chip span { font-size: 12px; font-weight: 600; color: var(--muted); }
+.ca-chip code { font-family: var(--mono); font-size: 12.5px; }
+.ca-chip svg { color: var(--muted); }
+@media (max-width: 640px) { .ca-chip { padding: 0 11px; gap: 6px; } .ca-chip code { font-size: 11.5px; } .ca-chip svg { display: none; } }

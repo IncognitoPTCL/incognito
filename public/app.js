@@ -39,13 +39,25 @@ function toast(msg) {
   clearTimeout(toastT);
   toastT = setTimeout(() => t.classList.remove('on'), 2800);
 }
-async function copy(text, what = 'Copied') {
+/** Copy to the clipboard; returns whether it worked. Falls back to a selection copy for browsers
+    that refuse the clipboard API (an unfocused tab, an older browser). */
+async function copy(text, what = 'Copied', failMessage = 'Copy failed. Select it by hand.') {
+  let ok = false;
   try {
     await navigator.clipboard.writeText(text);
-    toast(what);
+    ok = true;
   } catch {
-    toast('Copy failed. Select it by hand.');
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+    document.body.append(ta);
+    ta.select();
+    try { ok = document.execCommand('copy'); } catch { ok = false; }
+    ta.remove();
   }
+  toast(ok ? what : failMessage);
+  return ok;
 }
 
 /* ---------------------------------------------------------------- storage
@@ -92,7 +104,8 @@ async function makeWallet(use = 'launch') {
 async function exportKey(w, how) {
   const s = await signerOf(w);
   if (how === 'copy') {
-    await copy(base58(s.secret), 'Private key copied. Paste it somewhere safe.');
+    // a failed copy must not count as a backup
+    if (!(await copy(base58(s.secret), 'Private key copied. Paste it somewhere safe.', 'Copy failed. Use Download key file instead.'))) return;
   } else {
     const blob = new Blob([JSON.stringify([...s.secret])], { type: 'application/json' });
     const a = document.createElement('a');
@@ -1236,6 +1249,10 @@ async function paintPulseWallet() {
     if ($('p-bal')) $('p-bal').textContent = `${sol(lam)} SOL`;
   } catch { /* later */ }
 }
+
+// the coin's contract address on the navbar: one click copies it
+const caChip = $('ca-chip');
+if (caChip?.dataset.ca) caChip.addEventListener('click', () => copy(caChip.dataset.ca, 'Contract address copied', `CA: ${caChip.dataset.ca}`));
 
 $('q-form').addEventListener('submit', (e) => {
   e.preventDefault();
